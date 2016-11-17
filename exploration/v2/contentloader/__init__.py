@@ -1,0 +1,1 @@
+from contentloader.contentloader import CacheableReader

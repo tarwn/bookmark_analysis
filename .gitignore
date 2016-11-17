@@ -1,3 +1,6 @@
+# project-specific ignores
+exploration/v2/cache/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

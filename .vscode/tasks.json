@@ -3,5 +3,6 @@
 	"command": "python",
 	"isShellCommand": true,
 	"showOutput": "always",
-	"args": ["${file}"]
+	"args": ["${file}"],
+	"echoCommand": true
 }
