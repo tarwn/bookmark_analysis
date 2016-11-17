@@ -42,7 +42,6 @@ def cache_site_content(cache_folder, url, text, content_type):
     @param content_type Type of content to cache (HTML, text)
     """
     cache_filename = create_cache_filename(cache_folder, url, content_type)
-    print('writing in dir %s' % os.curdir)
     with codecs.open(cache_filename, 'w', 'utf-8') as cache_file:
         cache_file.write(text)
 
@@ -55,7 +54,6 @@ def get_cached_site_content(cache_folder, url, content_type):
     @return string cached site text
     """
     cache_filename = create_cache_filename(cache_folder, url, content_type)
-    print('reading in dir %s' % os.curdir)
     with codecs.open(cache_filename, 'r', 'utf-8') as cache_file:
         return cache_file.read()
 

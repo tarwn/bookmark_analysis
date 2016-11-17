@@ -10,7 +10,7 @@ def execute(pages):
     start_time = time.time()
 
     #1: Import stopwords from an external file
-    rake = RAKE.Rake('stoplists/SmartStoplist.txt')
+    rake = RAKE.Rake('stoplists/SmartStoplist.txt', min_char_length=2, max_words_length=5)
 
     #2: Initialize a URL reader with local caching to be kind to the internet
     rel_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'cache')
@@ -28,9 +28,10 @@ def execute(pages):
     print('Done. Elapsed: %d' % end_time)
 
 execute([
-    'http://tiernok.com/posts/continuous-javascript-test-execution-with-wallabyjs.html',
-    'http://tiernok.com/posts/stop-manually-updating-your-jasmine-specrunner.html',
-    'http://tiernok.com/posts/self-hosted-web-updating-assets-without-restarting-the-debugger.html',
-    'http://tiernok.com/posts/asp-net-single-sign-on-against-office365-with-oauth2.html',
-    'http://tiernok.com/posts/improved-teamcity-net-build-warnings.html'
+     'http://tiernok.com/posts/continuous-javascript-test-execution-with-wallabyjs.html',
+     'http://tiernok.com/posts/stop-manually-updating-your-jasmine-specrunner.html',
+     'http://tiernok.com/posts/self-hosted-web-updating-assets-without-restarting-the-debugger.html',
+     'http://tiernok.com/posts/asp-net-single-sign-on-against-office365-with-oauth2.html',
+     'http://tiernok.com/posts/improved-teamcity-net-build-warnings.html'
 ])
+

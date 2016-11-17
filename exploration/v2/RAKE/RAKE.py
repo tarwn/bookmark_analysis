@@ -1,12 +1,14 @@
-# Implementation of RAKE - Rapid Automtic Keyword Exraction algorithm
-# as described in:
-# Rose, S., D. Engel, N. Cramer, and W. Cowley (2010).
-# Automatic keyword extraction from indi-vidual documents.
-# In M. W. Berry and J. Kogan (Eds.), Text Mining: Applications and Theory.unknown: John Wiley and Sons, Ltd.
+"""
+Implementation of RAKE - Rapid Automatic Keyword Extraction algorithm
+as described in:
+Rose, S., D. Engel, N. Cramer, and W. Cowley (2010).
+Automatic keyword extraction from indi-vidual documents.
+In M. W. Berry and J. Kogan (Eds.), Text Mining: Applications and Theory.
+unknown: John Wiley and Sons, Ltd.
+"""
 
 import re
 import operator
-
 
 def is_number(s):
     try:
@@ -66,17 +68,43 @@ def build_stop_word_regex(stop_word_file_path):
     return stop_word_pattern
 
 
-def generate_candidate_keywords(sentence_list, stopword_pattern):
+def generate_candidate_keywords(sentence_list, stopword_pattern, min_char_length=1, max_words_length=5):
     phrase_list = []
     for s in sentence_list:
         tmp = re.sub(stopword_pattern, '|', s.strip())
         phrases = tmp.split("|")
         for phrase in phrases:
             phrase = phrase.strip().lower()
-            if phrase != "":
+            if phrase != "" and is_acceptable(phrase, min_char_length, max_words_length):
                 phrase_list.append(phrase)
     return phrase_list
 
+def is_acceptable(phrase, min_char_length, max_words_length):
+    # a phrase must have a min length in characters
+    if len(phrase) < min_char_length:
+        return 0
+
+    # a phrase must have a max number of words
+    words = phrase.split()
+    if len(words) > max_words_length:
+        return 0
+
+    digits = 0
+    alpha = 0
+    for i in range(0, len(phrase)):
+        if phrase[i].isdigit():
+            digits += 1
+        elif phrase[i].isalpha():
+            alpha += 1
+
+    # a phrase must have at least one alpha character
+    if alpha == 0:
+        return 0
+
+    # a phrase must have more alpha than digits characters
+    if digits > alpha:
+        return 0
+    return 1
 
 def calculate_word_scores(phraseList):
     word_frequency = {}
@@ -101,9 +129,12 @@ def calculate_word_scores(phraseList):
     return word_score
 
 
-def generate_candidate_keyword_scores(phrase_list, word_score):
+def generate_candidate_keyword_scores(phrase_list, word_score, min_keyword_frequency=1):
     keyword_candidates = {}
     for phrase in phrase_list:
+        if min_keyword_frequency > 1:
+            if phrase_list.count(phrase) < min_keyword_frequency:
+                continue
         keyword_candidates.setdefault(phrase, 0)
         word_list = separate_words(phrase, 0)
         candidate_score = 0
@@ -114,18 +145,24 @@ def generate_candidate_keyword_scores(phrase_list, word_score):
 
 
 class Rake(object):
-    def __init__(self, stop_words_path):
-        self.stop_words_path = stop_words_path
+    def __init__(self, stop_words_path, min_char_length=1, max_words_length=5, min_keyword_frequency=1):
+        self.__stop_words_path = stop_words_path
         self.__stop_words_pattern = build_stop_word_regex(stop_words_path)
+        self.__min_char_length = min_char_length
+        self.__max_words_length = max_words_length
+        self.__min_keyword_frequency = min_keyword_frequency
 
     def run(self, text):
         sentence_list = split_sentences(text)
 
-        phrase_list = generate_candidate_keywords(sentence_list, self.__stop_words_pattern)
+        phrase_list = generate_candidate_keywords(sentence_list, \
+                                                  self.__stop_words_pattern, \
+                                                  self.__min_char_length, \
+                                                  self.__max_words_length)
 
         word_scores = calculate_word_scores(phrase_list)
 
-        keyword_candidates = generate_candidate_keyword_scores(phrase_list, word_scores)
+        keyword_candidates = generate_candidate_keyword_scores(phrase_list, word_scores, self.__min_keyword_frequency)
 
         sorted_keywords = sorted(keyword_candidates.items(), key=operator.itemgetter(1), reverse=True)
         return sorted_keywords
