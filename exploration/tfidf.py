@@ -53,7 +53,7 @@ for page in pages:
         print('Couldn\'t download %s, error: %s' % (page, exc))
         continue
 
-# 4: For each page, calculate TD-IDF scores and output top 5 scoring words
+# 4: For each page, calculate TF-IDF scores and output top 5 scoring words
 for page in completed_pages:
     print('Scoring %s' % page["page"])
     page_scores = score_page(page["blob"], [page["blob"] for page in completed_pages])

@@ -23,9 +23,9 @@ def execute(pages):
     #3: RAKE keywords for each page
     rake = RAKE.Rake('stoplists/SmartStoplist.txt', min_char_length=2, max_words_length=5)
     for page in processed_pages:
-       page["rake_results"] = rake.run(page["text"])
+        page["rake_results"] = rake.run(page["text"])
 
-    #4: TD-IDF keywords for processed text
+    #4: TF-IDF keywords for processed text
     document_frequencies = {}
     document_count = len(processed_pages)
     for page in processed_pages:
@@ -34,13 +34,14 @@ def execute(pages):
             document_frequencies.setdefault(word, 0)
             document_frequencies[word] += 1
 
+    sortby = lambda x: x[1]["score"]
     for page in processed_pages:
         for word in page["tfidf_frequencies"].items():
             word_frequency = word[1]["frequency"]
             docs_with_word = document_frequencies[word[0]]
             word[1]["score"] = tfidf.calculate(word_frequency, document_count, docs_with_word)
 
-        page["tfidf_results"] = sorted(page["tfidf_frequencies"].items(), key=lambda x: x[1]["score"], reverse=True)
+        page["tfidf_results"] = sorted(page["tfidf_frequencies"].items(), key=sortby, reverse=True)
 
     #5. Results
     for page in processed_pages:
