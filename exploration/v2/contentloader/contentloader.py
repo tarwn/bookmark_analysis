@@ -82,7 +82,10 @@ def cleanse_html(html):
         element.extract()
     for element in content.findAll(class_="ep-post-subtext"):
         element.extract()
-    return content.get_text().lower()
+    return content.get_text() \
+                  .lower() \
+                  .replace('\n','') \
+                  .replace('\r','')
 
 class CacheableReader(object):
     """
