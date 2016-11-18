@@ -68,33 +68,15 @@ def download_site_html(url):
     html = resp.text
     return html
 
-def cleanse_html(html):
-    """
-    Cleanse HTML into plain text
-    @param html HTML string to cleanse
-    @return string Text without HTML markup
-    """
-    soup = BeautifulSoup(html, "html.parser")
-    content = soup.find('article')
-    for element in content.findAll(class_="bwp-syntax-block"):
-        element.extract()
-    for element in content.findAll(class_="ep-post-comments"):
-        element.extract()
-    for element in content.findAll(class_="ep-post-subtext"):
-        element.extract()
-    return content.get_text() \
-                  .lower() \
-                  .replace('\n','') \
-                  .replace('\r','')
-
 class CacheableReader(object):
     """
     A reader that downloads and cleanses content from the web, with local caching
     based on the final segment of the URL
     """
 
-    def __init__(self, cache_folder):
+    def __init__(self, cache_folder, cleanse_method):
         self.cache_folder = cache_folder
+        self.cleanse_method = cleanse_method
 
     def get_site_text(self, url, force=False):
         """
@@ -118,7 +100,7 @@ class CacheableReader(object):
             html = get_cached_site_content(self.cache_folder, url, 'HTML')
 
         if load_text_fresh is True:
-            text = cleanse_html(html)
+            text = self.cleanse_method(html)
             cache_site_content(self.cache_folder, url, text, 'text')
         else:
             text = get_cached_site_content(self.cache_folder, url, 'text')
