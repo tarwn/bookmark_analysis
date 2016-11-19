@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 import contentloader
 import RAKE
 import tfidf
+import textrank
 
 RAKE_STOPLIST = 'stoplists/SmartStoplist.txt'
 CACHE_FOLDER = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'cache')
@@ -47,7 +48,12 @@ def execute(cleanse_method, pages):
 
         page["tfidf_results"] = sorted(page["tfidf_frequencies"].items(), key=sortby, reverse=True)
 
-    #5. Results
+    #5. TextRank
+    for page in processed_pages:
+        textrank_results = textrank.extractKeyphrases(page["text"])
+        page["textrank_results"] = sorted(textrank_results.items(), key=lambda x: x[1], reverse=True)
+
+    #6. Results
     for page in processed_pages:
         print("-------------------------")
         print("URL: %s" % page["url"])
@@ -56,6 +62,9 @@ def execute(cleanse_method, pages):
             print(" * %s" % result[0])
         print("TF-IDF:")
         for result in page["tfidf_results"][:5]:
+            print(" * %s" % result[0])
+        print("TextRank:")
+        for result in page["textrank_results"][:5]:
             print(" * %s" % result[0])
 
     end_time = time.time() - start_time
@@ -71,17 +80,20 @@ def cleanse_tiernok_html(html):
         element.extract()
     for element in content.findAll(class_="ep-post-subtext"):
         element.extract()
-    return content.get_text() \
+    return content.get_text(" ") \
                   .lower() \
-                  .replace('\n','') \
-                  .replace('\r','')
+                  .replace('\n', '') \
+                  .replace('\r', '')
 
 # get links because I'm too lazy to copy/pasta
-resp = requests.get('http://tiernok.com/posts/index.html')
-resp.raise_for_status()
-html = resp.text
-soup = BeautifulSoup(html, "html.parser")
-anchors = soup.findAll(class_="ep-archive-title-link")
-post_links = ["http://tiernok.com/posts/{0}".format(link['href'][2:]) for link in anchors]
+def get_test_links():
+    resp = requests.get('http://tiernok.com/posts/index.html')
+    resp.raise_for_status()
+    html = resp.text
+    soup = BeautifulSoup(html, "html.parser")
+    anchors = soup.findAll(class_="ep-archive-title-link")
+    return ["http://tiernok.com/posts/{0}".format(link['href'][2:]) for link in anchors]
+
 # run algorithms
-execute(cleanse_tiernok_html, post_links)
+test_links = get_test_links()[:5]
+execute(cleanse_tiernok_html, test_links)
