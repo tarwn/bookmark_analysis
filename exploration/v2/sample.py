@@ -17,20 +17,27 @@ def execute(cleanse_method, pages):
     start_time = time.time()
 
     #1: Initialize a URL reader with local caching to be kind to the internet
+    print("=== 1. Initialize")
     reader = contentloader.CacheableReader(CACHE_FOLDER, cleanse_method)
+    print("Initialized: %d" % (time.time() - start_time))
 
     #2: Collect raw text for pages
+    print("=== 2. Collect Raw Text")
     processed_pages = []
     for page in pages:
         page_text = reader.get_site_text(page)
         processed_pages.append({"url": page, "text": page_text})
+    print("Collected: %d" % (time.time() - start_time))
 
     #3: RAKE keywords for each page
+    print("=== 3. RAKE")
     rake = RAKE.Rake(RAKE_STOPLIST, min_char_length=2, max_words_length=5)
     for page in processed_pages:
         page["rake_results"] = rake.run(page["text"])
+    print("RAKE: %d" % (time.time() - start_time))
 
     #4: TF-IDF keywords for processed text
+    print("=== 4. TF-IDF")
     document_frequencies = {}
     document_count = len(processed_pages)
     for page in processed_pages:
@@ -47,13 +54,17 @@ def execute(cleanse_method, pages):
             word[1]["score"] = tfidf.calculate(word_frequency, document_count, docs_with_word)
 
         page["tfidf_results"] = sorted(page["tfidf_frequencies"].items(), key=sortby, reverse=True)
+    print("TF-IDF: %d" % (time.time() - start_time))
 
     #5. TextRank
+    print("=== 5. TextRank")
     for page in processed_pages:
         textrank_results = textrank.extractKeyphrases(page["text"])
         page["textrank_results"] = sorted(textrank_results.items(), key=lambda x: x[1], reverse=True)
+    print("TextRank: %d" % (time.time() - start_time))
 
     #6. Results
+    print("=== 6. Results")
     for page in processed_pages:
         print("-------------------------")
         print("URL: %s" % page["url"])
@@ -95,5 +106,5 @@ def get_test_links():
     return ["http://tiernok.com/posts/{0}".format(link['href'][2:]) for link in anchors]
 
 # run algorithms
-test_links = get_test_links()[:5]
+test_links = get_test_links()[:50]
 execute(cleanse_tiernok_html, test_links)

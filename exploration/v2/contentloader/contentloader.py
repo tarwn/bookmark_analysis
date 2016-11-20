@@ -93,6 +93,9 @@ class CacheableReader(object):
                           load_html_fresh is True or \
                           is_site_text_cached(self.cache_folder, url, 'text') is False
 
+        if not os.path.exists(self.cache_folder):
+            os.makedirs(self.cache_folder)
+
         if load_html_fresh is True:
             html = download_site_html(url)
             cache_site_content(self.cache_folder, url, html, 'HTML')
